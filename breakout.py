@@ -80,6 +80,10 @@ class ball(pygame.sprite.Sprite):
                 self.bounce({"x":1,"y":0})
             if self.rect.top < self.area.top or self.rect.bottom > self.area.bottom:
                 self.bounce({"x":0,"y":1})
+
+            #change to game over later
+            if (self.rect.bottom > self.area.bottom):  
+                pygame.quit()
                 
             newpos = self.rect.move(self.vx, self.vy)
             self.rect = newpos
@@ -114,23 +118,38 @@ class block(pygame.sprite.Sprite):
         if self.rect.top < target.rect.top or self.rect.bottom > target.rect.bottom:
             return {"x":1,"y":0}
 
-class Label():
-    def __init__(self):
-        self.score = 0
-        self.bg = WHITE
-        self.font = pygame.font.Font(None, 64)
-        self.text = self.font.render(f"Break Out     Score = {self.score}", True, (10, 10, 10))
-        self.textpos = self.text.get_rect(centerx=background.get_width() / 2, y=10)
-        self.background.blit(self.text, self.textpos)
+# class Label(pygame.sprite.Sprite):
+#     def __init__(self):
+#         # Call the parent class (Sprite) constructor  
+#         pygame.sprite.Sprite.__init__(self)
+#         self.score = 0
+#         self.font = pygame.font.Font(None, 64)
+#         self.textSurf = self.font.render(f"Break Out     Score = {self.score}", True, (10, 10, 10))
+#         self.image = pygame.Surface((1000, 1000))
+#         self.textpos = self.textSurf.get_rect(centerx=background.get_width() / 2, y=10)
+#         self.image.blit(self.textSurf, self.textpos)
+
+#         self.rect = self.textpos
+
+# class Label1(pygame.sprite.Sprite):
+#     def __init__(self):
+#         pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
+#         self.score = 0
+#         self.font = pygame.font.Font(None, 64)
+#         self.text = self.font.render(f"Break Out     Score = {self.score}", True, (10, 10, 10))
+#         self.image = pygame.Surface((width, height))
+#         self.textpos = self.text.get_rect(centerx=background.get_width() / 2, y=10)
+#         screen.blit(self.text, self.textpos)
 
 
-    def draw(self, screen):
-        screen.blit(self.surface, self.rect)
 
-    def update(self):
-        self.surface.fill(self.bg)
-        self.textpos = self.text.get_rect(centerx=background.get_width() / 2, y=10)
-        self.background.blit(self.text, self.textpos)
+#     def draw(self, screen):
+#         screen.blit(self.text, self.textpos)
+
+#     def update(self):
+#         # self.surface.fill((170, 238, 187))
+#         # self.textpos = self.text.get_rect(centerx=background.get_width() / 2, y=10)
+#         screen.blit(self.text, self.textpos)
 
 
 screen = pygame.display.set_mode((1280, 480), pygame.SCALED)
@@ -147,6 +166,14 @@ score = 0
 
 screen.blit(background, (0, 0))
 pygame.display.flip()
+
+
+
+font = pygame.font.Font(None, 64)
+
+text = font.render(f"Break Out     Score = {score}", True, (10, 10, 10))
+
+textpos = text.get_rect(centerx=background.get_width() / 2, y=10)
 
 
 paddle = paddle()
@@ -180,13 +207,17 @@ while going:
             ball.bounce(block.collisionNormal(ball))
             block.kill()
             score += 1
+            text = font.render(f"Break Out     Score = {score}", True, (10, 10, 10))
 
             # allsprites.remove(block)
 
     blocksGroup.update()
     allsprites.update()
+
+   
     
     screen.blit(background, (0, 0))
+    screen.blit(text, textpos)
     blocksGroup.draw(screen)
     allsprites.draw(screen)
     pygame.display.flip()
