@@ -63,7 +63,7 @@ class ball(pygame.sprite.Sprite):
         self.image, self.rect = load_image("ball.png", -1, 2)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
-        self.rect.topleft = 300, 90
+        self.rect.topleft = 700, 100
         self.vx = 4
         self.vy = 4
 
@@ -90,11 +90,48 @@ class ball(pygame.sprite.Sprite):
         # reflectedVector = velocityVector - scale(surfaceNormal, 2.0*dot(surfaceNormal, velocityVector))]\
         self.vx = self.vx - (side["x"]*self.vx + side["y"]*self.vy)*side["x"]*2
         self.vy = self.vy - (side["x"]*self.vx + side["y"]*self.vy)*side["y"]*2
-        print(side["y"])
         
 
         
-        
+
+class block(pygame.sprite.Sprite):
+    """Paddle that moves with a and d"""
+
+    def __init__(self, posX, posY):
+        pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
+        self.image, self.rect = load_image("paddle.png", -1, scale=3)
+        self.rect.move_ip(posX,posY)
+
+
+    def collides(self, target):
+
+        # hitbox = self.rect.inflate(-5, -5)
+        return self.rect.colliderect(target.rect)
+    
+    def collisionNormal(self, target):
+        if self.rect.left < target.rect.left or self.rect.right > target.rect.right:
+            return {"x":0,"y":1}
+        if self.rect.top < target.rect.top or self.rect.bottom > target.rect.bottom:
+            return {"x":1,"y":0}
+
+class Label():
+    def __init__(self):
+        self.score = 0
+        self.bg = WHITE
+        self.font = pygame.font.Font(None, 64)
+        self.text = self.font.render(f"Break Out     Score = {self.score}", True, (10, 10, 10))
+        self.textpos = self.text.get_rect(centerx=background.get_width() / 2, y=10)
+        self.background.blit(self.text, self.textpos)
+
+
+    def draw(self, screen):
+        screen.blit(self.surface, self.rect)
+
+    def update(self):
+        self.surface.fill(self.bg)
+        self.textpos = self.text.get_rect(centerx=background.get_width() / 2, y=10)
+        self.background.blit(self.text, self.textpos)
+
 
 screen = pygame.display.set_mode((1280, 480), pygame.SCALED)
 pygame.display.set_caption("Break Out")
@@ -103,13 +140,9 @@ pygame.init()
 background = pygame.Surface(screen.get_size())
 background = background.convert()
 background.fill((170, 238, 187))
+score = 0
 
 
-if pygame.font:
-    font = pygame.font.Font(None, 64)
-    text = font.render("Break Out     Score = 0", True, (10, 10, 10))
-    textpos = text.get_rect(centerx=background.get_width() / 2, y=10)
-    background.blit(text, textpos)
 
 
 screen.blit(background, (0, 0))
@@ -118,13 +151,18 @@ pygame.display.flip()
 
 paddle = paddle()
 ball = ball()
+blocks = (block(100,100),block(200,160),block(300,100),block(400,160))
 allsprites = pygame.sprite.RenderPlain((paddle,ball))
+blocksGroup = pygame.sprite.RenderPlain(blocks)
+
 clock = pygame.time.Clock()
 
 
 going = True
 while going:
     clock.tick(60)
+    
+
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -134,9 +172,22 @@ while going:
 
     if paddle.collides(ball):
         ball.bounce({"x":0,"y":1})
+
+
+
+    for block in pygame.sprite.spritecollide(ball, blocksGroup, 1):
+        if block.collides(ball):
+            ball.bounce(block.collisionNormal(ball))
+            block.kill()
+            score += 1
+
+            # allsprites.remove(block)
+
+    blocksGroup.update()
     allsprites.update()
     
     screen.blit(background, (0, 0))
+    blocksGroup.draw(screen)
     allsprites.draw(screen)
     pygame.display.flip()
 
